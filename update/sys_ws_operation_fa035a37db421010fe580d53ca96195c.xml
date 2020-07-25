@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ws_operation">
+    <sys_ws_operation action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <consumes>application/json</consumes>
+        <consumes_customized>false</consumes_customized>
+        <default_operation_uri>/api/x_58872_needit/needit_api/nigetinfo/{user_name}</default_operation_uri>
+        <enforce_acl>cf9d01d3e73003009d6247e603f6a990</enforce_acl>
+        <http_method>GET</http_method>
+        <name>ni_getinfo</name>
+        <operation_script><![CDATA[(function process( /*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) {
+
+        // implement resource here
+
+        var user_path = request.pathParams;
+        var user = user_path.user_name;
+
+        var query_param = request.queryParams;
+        var query = query_param.ni_query;
+
+	    var res = {'totalUserNIRecs':'0',
+				   "catCounts":[],
+/*				   'hr_count':'0',
+				   'facilities_count':'0',
+					'legal_count':'0',*/
+				    'user':{}
+					   };
+	 
+	    var cat_count = {};
+	
+        var user_rec = new GlideRecord('sys_user');
+        user_rec.get('name', user);
+	
+	    // Count of active Needit recs
+	    var ga = new GlideAggregate('x_58872_needit_needit');
+        ga.addQuery('u_requested_for', user_rec.sys_id);
+//	    ga.addQuery('state','!=','3');
+	    ga.addEncodedQuery(query);
+        ga.addAggregate('COUNT', 'u_requested_for');
+        ga.query(query);
+        if (ga.hasNext()) {
+            while (ga.next()) {
+     //           gs.info(ga.getAggregate('COUNT', 'u_requested_for'));
+				res.totalUserNIRecs = ga.getAggregate('COUNT', 'u_requested_for');
+            }
+        }
+	
+	    // Count of active NeedIt records for the user by Request type
+        ga = new GlideAggregate('x_58872_needit_needit');
+        ga.addAggregate('COUNT', 'u_request_type');
+        ga.addQuery('u_requested_for', user_rec.sys_id);
+//	    ga.addQuery('state','!=','3');
+	    ga.addEncodedQuery(query);
+        ga.query();
+        if (ga.hasNext()) {
+            while (ga.next()) {
+				switch (ga.u_request_type + ''){
+					case 'hr' :
+			//			res.hr_count = ga.getAggregate('COUNT', 'u_request_type');
+						cat_count.requestType = ga.u_request_type.getDisplayValue();
+						cat_count.count = ga.getAggregate('COUNT', 'u_request_type');
+						res.catCounts.push(cat_count);						
+						break;
+						
+				    case 'facilities' :
+			//			res.facilities_count = ga.getAggregate('COUNT', 'u_request_type');
+						cat_count.requestType = ga.u_request_type.getDisplayValue();
+						cat_count.count = ga.getAggregate('COUNT', 'u_request_type');
+						res.catCounts.push(cat_count);	
+						break;
+						
+					case 'legal' :
+			//			res.legal_count = ga.getAggregate('COUNT', 'u_request_type');
+						cat_count.requestType = ga.u_request_type.getDisplayValue();
+						cat_count.count = ga.getAggregate('COUNT', 'u_request_type');
+						res.catCounts.push(cat_count);	
+						break;						
+				}
+  //              gs.info(ga.u_request_type + ' : ' + ga.getAggregate('COUNT', 'u_request_type'));
+  //				response.count = ga.getAggregate('COUNT', 'u_request_type');
+            }
+        }
+	
+	    res.user.name =user;
+	    res.user.sys_id =user_rec.sys_id;
+
+//	    res = JSON.stringify(res);
+	
+	    response.setBody(res);
+	    response.setStatus('200');       
+
+})(request, response);]]></operation_script>
+        <operation_uri>/api/x_58872_needit/v1/needit_api/nigetinfo/{user_name}</operation_uri>
+        <produces>application/json,application/xml,text/xml</produces>
+        <produces_customized>false</produces_customized>
+        <relative_path>/nigetinfo/{user_name}</relative_path>
+        <request_example/>
+        <requires_acl_authorization>true</requires_acl_authorization>
+        <requires_authentication>true</requires_authentication>
+        <requires_snc_internal_role>true</requires_snc_internal_role>
+        <short_description>Find the NeedIt active NeedIt records for a user. Group by What needed.</short_description>
+        <sys_class_name>sys_ws_operation</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-07-23 19:35:50</sys_created_on>
+        <sys_id>fa035a37db421010fe580d53ca96195c</sys_id>
+        <sys_mod_count>17</sys_mod_count>
+        <sys_name>ni_getinfo</sys_name>
+        <sys_package display_value="NeedIt" source="x_58872_needit">6ead8e780f603200cd674f8ce1050ed1</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="NeedIt">6ead8e780f603200cd674f8ce1050ed1</sys_scope>
+        <sys_update_name>sys_ws_operation_fa035a37db421010fe580d53ca96195c</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-07-25 14:14:18</sys_updated_on>
+        <web_service_definition display_value="NeedIt API">51ad70d3db021010fe580d53ca961989</web_service_definition>
+        <web_service_version display_value="v1">3edc57d4db565010fe580d53ca9619c3</web_service_version>
+    </sys_ws_operation>
+</record_update>
